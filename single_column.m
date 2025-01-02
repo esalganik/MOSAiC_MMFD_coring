@@ -1,0 +1,269 @@
+%% FYI coring, refined temperatures
+close all; clear; clc; 
+load('T66.mat',"t_T66","T_T66","lat_T66","long_T66"); % Thermistor 2019T66 data import (FYI)
+cut = 1097; t_T66 = t_T66(1:cut); T_T66 = T_T66(1:cut,:); lat_T66 = lat_T66(1:cut); lon_T66 = long_T66(1:cut);
+td_0_T66 = (datenum(t_T66)- datenum(t_T66(1))); td_T66 = datenum(t_T66); % time of experiment [d]
+top_t_dir_T66 = [0 212 215 223 225 233 241 246 254 262 266 269 272]; % Direct time of measurements [d]
+top_dir_T66 =  -[0   0   6  12   0   2   0  12  22  40  42  52  54]/100; % Thickness for interpolation [m]
+bot_t_dir_T66 = [ 0  4  5 24 45 64  99 154 195 212 244 261 272]; % Direct time of measurements [d]
+bot_dir_T66 =  -[33 40 42 54 66 82 104 140 154 154 146 138 126]/100; % Thickness for interpolation [m]
+bot_int_T66 = interp1(bot_t_dir_T66,bot_dir_T66,td_0_T66,'pchip'); % Experimental bottom interpolation
+top_int_T66 = interp1(top_t_dir_T66,top_dir_T66,td_0_T66,'pchip'); % Experimental bottom interpolation
+z_T66 = 0.96:-0.02:-4.8+0.96; % IMB vertical coordinates, original
+z_T66_ref = 0.2:-0.005:-1.8; % IMB vertical coordinates, refined, 5 mm spacing
+T_T66_ref = zeros(size(T_T66,1),length(z_T66_ref));
+for i = 1:length(T_T66)
+    T_T66_ref(i,:) = interp1(z_T66,T_T66(i,:),z_T66_ref,'linear'); % refinement of IMB temperature
+end
+frz_T66_ref = T_T66_ref; % temperature of only frozen sesnors
+for i = 1:size(T_T66_ref,1) % time
+    for j = 1:size(T_T66_ref,2) % depth
+        if  j > (z_T66_ref(1) - bot_int_T66(i))*100*2
+            frz_T66_ref(i,j) = NaN;
+        elseif  j < (z_T66_ref(1) - top_int_T66(i))*100*2
+            frz_T66_ref(i,j) = NaN;
+        end
+    end
+end
+clearvars cut td_0_T66 top_t_dir_T66 top_dir_T66 bot_t_dir_T66 bot_dir_T66 T_T66 i j long_T66
+
+figure
+range = [-30 -25 -20 -15 -10 -8 -6 -4 -2 0 2 4]; 
+contourf(datenum(t_T66),z_T66_ref,frz_T66_ref',range,'-','ShowText','on','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
+plot(datenum(t_T66),top_int_T66,'k--'); plot(datenum(t_T66),bot_int_T66,'k--');
+hYLabel = ylabel('Depth (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+clim([-30 5]);
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+colorbar; brighten(.1); colormap(gca,bluewhitered);
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
+clearvars range hYLabel ax hBar1
+
+%% Stretch of T from IMB towards surface interface
+T_fy_int = frz_T66_ref'; zT_fy_int = z_T66_ref;
+for i = 1:length(T_fy_int)
+     zT_fy_top(i) = zT_fy_int(find(~isnan(T_fy_int(:,i)),1));
+     zT_fy_bot(i) = zT_fy_int(find(~isnan(T_fy_int(:,i)),1,'last'));
+     zT_fy_top_sur(i) = zT_fy_top(i)-zT_fy_top(i);
+     zT_fy_bot_sur(i) = zT_fy_bot(i)-zT_fy_top(i);
+end
+zT_fy_str = zT_fy_int(:)*ones(1,length(T_fy_int));
+for i = 1:length(T_fy_int)
+    zT_fy_str(:,i) = (zT_fy_str(:,i)-zT_fy_top(i))*(+zT_fy_bot_sur(i)-zT_fy_top_sur(i))/(zT_fy_bot(i)-zT_fy_top(i)) + zT_fy_top_sur(i);
+end
+T_fy_int_sur = T_fy_int; % preallocation
+for i = 1:length(T_fy_int)
+    T_fy_int_sur(:,i) = interp1(zT_fy_str(:,i),T_fy_int(:,i),zT_fy_int','linear'); % interpolation of IMB temp along salinity core depth
+end
+[X,Y] = meshgrid(datenum(t_T66),zT_fy_int); Z = T_fy_int_sur; % contour plot preparation
+clearvars i
+
+figure
+range = [-30 -25 -20 -15 -10 -8 -6 -4 -2 0 2 4]; 
+contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
+plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+clim([-30 5]);
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+colorbar; brighten(.1); colormap(gca,bluewhitered);
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
+clearvars X Y Z range hYLabel ax hBar1
+
+%% Salinity base data
+load('Coring_old_fb.mat',"S_fy","zS_fy","zzS_fy","t_fy","td_fy","td"); % Coring data import
+for i = 1:length(t_fy)
+    [~,idx(i)] = min(abs(datenum(t_fy(i))-datenum(t_T66)));
+    l_imb(i) = -zT_fy_bot(idx(i))+zT_fy_top(idx(i)); % core length from IMB for coring dates
+end
+lvl = [1:3 5:12 15 17:23]; % removing rafted FYI
+dS_fy = zS_fy;
+for i = 1:length(S_fy)
+    hS(i) = zzS_fy{i,1}(end,2); % salinity core length
+    dS_fy{i,1} = -zS_fy{i,1}*l_imb(i)/hS(i); % length of salinity measurements for FYI
+end
+hS(22) = zzS_fy{22,1}(end-3,2); dS_fy{22,1} = -zS_fy{22,1}*l_imb(22)/hS(22); % remove fb
+hS(21) = zzS_fy{21,1}(end-2,2); dS_fy{21,1} = -zS_fy{21,1}*l_imb(21)/hS(21); % remove fb
+hS(20) = zzS_fy{20,1}(end-1,2); dS_fy{20,1} = -zS_fy{20,1}*l_imb(20)/hS(20); % remove fb
+
+S_lvl = S_fy; S_lvl(16)=[]; S_lvl(14)=[]; S_lvl(13)=[]; S_lvl(4)=[];
+dS_fy_lvl = dS_fy; dS_fy_lvl(16)=[]; dS_fy_lvl(14)=[]; dS_fy_lvl(13)=[]; dS_fy_lvl(4)=[]; 
+td_lvl = td_fy; td_lvl(16)=[]; td_lvl(14)=[]; td_lvl(13)=[]; td_lvl(4)=[];
+
+S_lvl{18}(28:30) = []; dS_fy_lvl{18}(28:30) = []; td_lvl{18}(28:30) = []; % remove fb
+S_lvl{17}(29:30) = []; dS_fy_lvl{17}(29:30) = []; td_lvl{17}(29:30) = []; % remove fb
+S_lvl{16}(32) = []; dS_fy_lvl{16}(32) = []; td_lvl{16}(32) = [];  % remove fb
+
+S_vect = cell2mat(S_lvl); dS_fy_vect = cell2mat(dS_fy_lvl); tdS_fy_vect = cell2mat(td_lvl);
+x = tdS_fy_vect; y = dS_fy_vect; z = S_vect;
+xv = linspace(min(x), max(x), 1101);
+yv = z_T66_ref;
+[X,Y] = meshgrid(xv, yv);
+Z = griddata(x,y,z,X,Y);
+S_fy_int = Z(:,4:end-1); zS_fy_int = yv;
+clearvars l_imb lvl tdS_fy_vect dS_fy_vect S_vect idx x y z xv yv i S_lvl td td_fy t_fy hS td_lvl dS_fy_lvl zzS_fy
+
+figure
+range = [0 1 2 3 4 6 8 10]; % Salinity graph accuracy;
+[C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
+plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+clabel(C,h,'FontSize',6,'Color','k');
+hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal'); colorbar; colormap summer; brighten(.7);
+clim([0 8]);
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+hBar1 = colorbar; ylabel(hBar1,'Ice salinity','FontSize',8);
+clearvars X Y Z C h range hYLabel ax hBar1
+
+%% Salinity stretch over IMB depth
+for i = 1:length(S_fy_int)
+     zS_fy_top(i) = zS_fy_int(find(~isnan(S_fy_int(:,i)),1));
+     zS_fy_bot(i) = zS_fy_int(find(~isnan(S_fy_int(:,i)),1,'last'));
+     zT_fy_top(i) = zT_fy_int(find(~isnan(T_fy_int_sur(:,i)),1));
+     zT_fy_bot(i) = zT_fy_int(find(~isnan(T_fy_int_sur(:,i)),1,'last'));
+end
+zT_fy_str = z_T66_ref(:)*ones(1,length(T_fy_int));
+for i = 1:length(T_fy_int)
+    zT_fy_str(:,i) = (zT_fy_str(:,i)-zS_fy_top(i))*(+zT_fy_bot(i)-zT_fy_top(i))/(zS_fy_bot(i)-zS_fy_top(i)) + zT_fy_top(i);
+end
+
+S_fy_int_sur = T_fy_int; % preallocation
+for i = 1:length(T_fy_int)
+    S_fy_int_sur(:,i) = interp1(zT_fy_str(:,i),S_fy_int(:,i),z_T66_ref','linear'); % interpolation of salinity along IMB depth
+end
+[X,Y] = meshgrid(datenum(t_T66),z_T66_ref); Z = S_fy_int_sur; % contour plot preparation
+clearvars zT_fy_str i
+
+figure
+range = [0 1 2 3 4 6 8 10]; % Salinity graph accuracy;
+[C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
+plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+clabel(C,h,'FontSize',6,'Color','k');
+hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+clim([0 8]);
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+colorbar; colormap summer; brighten(.7);
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+hBar1 = colorbar; ylabel(hBar1,'FYI salinity','FontSize',8);
+clearvars X Y Z C range h hYLabel ax hBar1
+
+%% Brine volume
+vb_fy_int = zeros(size(S_fy_int_sur)); F1_fy_int = vb_fy_int;  F2_fy_int = vb_fy_int; rhoi_fy_int = vb_fy_int;
+for j = 1:length(t_T66)
+    for i = 1:length(z_T66_ref)
+        if T_fy_int_sur(i,j) <= -2
+            F1_fy_int(i,j) = -4.732-22.45*T_fy_int_sur(i,j) - 0.6397*T_fy_int_sur(i,j).^2 - 0.01074*T_fy_int_sur(i,j).^3; % Cox and Weeks (1983)
+            F2_fy_int(i,j) = 8.903*10^-2 - 1.763*10^-2*T_fy_int_sur(i,j) - 5.33*10^-4*T_fy_int_sur(i,j)^2 - 8.801*10^-6*T_fy_int_sur(i,j)^3; % Cox and Weeks (1983)
+        else
+            F1_fy_int(i,j) = -4.1221*10^-2 + -1.8407*10^1*T_fy_int_sur(i,j) + 5.8402*10^-1*T_fy_int_sur(i,j)^2 + 2.1454*10^-1*T_fy_int_sur(i,j)^3; % F1 from Lepparanta and Manninen (1988)
+            F2_fy_int(i,j) = 9.0312*10^-2 + -1.6111*10^-2*T_fy_int_sur(i,j) + 1.2291*10^-4*T_fy_int_sur(i,j)^2 + 1.3603*10^-4*T_fy_int_sur(i,j)^3; % F2 from Lepparanta and Manninen (1988)
+        end
+        rhoi_fy_int(i,j) = (917-1.403*10^-1*T_fy_int_sur(i,j)); % pure ice density, Pounder (1965) for T_insitu
+        vb_fy_int(i,j) = (1000).*(rhoi_fy_int(i,j).*S_fy_int_sur(i,j)/1000)./(F1_fy_int(i,j)-rhoi_fy_int(i,j).*S_fy_int_sur(i,j)/1000.*F2_fy_int(i,j)); % Brine volume for T_insitu, LM
+        if vb_fy_int(i,j) < 0
+            vb_fy_int(i,j) = NaN;
+        elseif vb_fy_int(i,j) > 1000
+            vb_fy_int(i,j) = NaN;
+        end
+    end
+end
+[X,Y] = meshgrid(datenum(t_T66),z_T66_ref); Z = vb_fy_int/1000; % contour plot preparation
+clearvars i j F1_fy_int F2_fy_int rhoi_fy_int
+
+figure
+range = [0 0.02 0.05 0.1 0.2 0.3];
+contourf(X,Y,Z,range,'-','ShowText','off','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
+plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+colorbar; colormap summer; brighten(0.5); clim([0 0.3]);
+text([td_T66(490) td_T66(800) td_T66(600) td_T66(900) td_T66(980) td_T66(980)],[-0.45 -1.38 -1.20 -0.9 -0.55 -0.30],{'0.02','0.1','0.05','0.1','0.2','0.3'},'color','k','FontSize',8);
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+yticks(-2.2:0.2:0.4); ylim([-1.6 0.1]); % summertime depth limits
+hBar1 = colorbar; ylabel(hBar1,'Brine volume','FontSize',8);
+clearvars X Y Z range hYLabel ax hBar1
+
+%% netCDF export - IMB cumulative meltwater
+filename = 'MOSAiC_FYI_coring.nc';
+time = datenum(t_T66-datetime('1979-01-01 00:00:00')); % time to nd datenum
+delete(filename)
+
+nccreate(filename,'time','Dimensions',{'time' length(time)},'format','netcdf4'); % time
+ncwriteatt(filename,'time','standard_name','time');
+ncwriteatt(filename,'time','long_name','time');
+ncwriteatt(filename,'time','units','days since 1979-01-01 00:00:00');
+
+nccreate(filename,'lat','Dimensions',{'time' length(time)});
+ncwriteatt(filename,'lat','standard_name','lat');
+ncwriteatt(filename,'lat','long_name','latitude');
+ncwriteatt(filename,'lat','units','°');
+
+nccreate(filename,'lon','Dimensions',{'time' length(time)});
+ncwriteatt(filename,'lon','standard_name','lon');
+ncwriteatt(filename,'lon','long_name','longitude');
+ncwriteatt(filename,'lon','units','°');
+
+nccreate(filename,'zi','Dimensions',{'zi' length(z_T66_ref)}); % Ice core length
+ncwriteatt(filename,'zi','standard_name','zi');
+ncwriteatt(filename,'zi','long_name','Ice core length');
+ncwriteatt(filename,'zi','units','m');
+
+nccreate(filename,'T_ice','Dimensions',{"zi",length(z_T66_ref),"time",length(time)}); % Temperature
+ncwriteatt(filename,'T_ice','standard_name','Temperature');
+ncwriteatt(filename,'T_ice','long_name','Ice temperature');
+ncwriteatt(filename,'T_ice','units','°C');
+
+nccreate(filename,'S_ice','Dimensions',{"zi",length(z_T66_ref),"time",length(time)}); % Salinity
+ncwriteatt(filename,'S_ice','standard_name','Salinity');
+ncwriteatt(filename,'S_ice','long_name','Ice practical salinity');
+ncwriteatt(filename,'S_ice','units','PSU');
+
+nccreate(filename,'vb','Dimensions',{"zi",length(z_T66_ref),"time",length(time)}); % Brine volume
+ncwriteatt(filename,'vb','standard_name','Brine volume');
+ncwriteatt(filename,'vb','long_name','Brine volume fraction');
+ncwriteatt(filename,'vb','units','%');
+
+nccreate(filename,'hi','Dimensions',{'time' length(time)}); % Ice thickness
+ncwriteatt(filename,'hi','standard_name','hi');
+ncwriteatt(filename,'hi','long_name','Ice thickness');
+ncwriteatt(filename,'hi','units','m');
+
+ncwrite(filename,'time',time);
+ncwrite(filename,'lat',lat_T66);
+ncwrite(filename,'lon',lon_T66);
+ncwrite(filename,'zi',z_T66_ref);
+ncwrite(filename,'T_ice',T_fy_int_sur);
+ncwrite(filename,'S_ice',S_fy_int_sur);
+ncwrite(filename,'vb',vb_fy_int/10);
+ncwrite(filename,'hi',-zT_fy_bot_sur);
+
+ncwriteatt(filename,"/","title","MOSAiC first-year ice coring");
+ncwriteatt(filename,"/","Conventions","CF-1.7");
+ncwriteatt(filename,"/","standard_name_vocabulary","___");
+ncwriteatt(filename,"/","contributor_name","Evgenii Salganik");
+ncwriteatt(filename,"/","contributor_email","evgenii.salganik@proton.me");
+ncwriteatt(filename,"/","institution","Norwegian Polar Institute (NPI)");
+ncwriteatt(filename,"/","creator_name","Evgenii Salganik");
+ncwriteatt(filename,"/","creator_email","evgenii.salganik@proton.me");
+ncwriteatt(filename,"/","project","MOSAiC Single Column Modeling Working Group");
+ncwriteatt(filename,"/","summary","First-year ice temperature, salinity, and brine volume");
+ncwriteatt(filename,"/","id","DOI: XXXXXXXX");
+ncwriteatt(filename,"/","license","CC-0");
+ncwriteatt(filename,"/","metadata_link","http://www.doi-metatadat-link.org/mydoiiiii");
+ncwriteatt(filename,"/","references","First-year sea-ice salinity, temperature, density, nutrient, oxygen and hydrogen isotope composition from the main coring site (MCS-FYI) during MOSAiC legs 1 to 4 in 2019/2020, version 2 https://doi.org/10.1594/PANGAEA.971385");
+ncwriteatt(filename,"/","time_coverage_start","2019-10-29 06:00:00");
+ncwriteatt(filename,"/","time_coverage_end","2020-07-29 06:30:00");
+ncwriteatt(filename,"/","naming_authority","___");
+ncwriteatt(filename,"/","keywords","surface energy budget, arctic, polar, salinity, temperature");
+ncwriteatt(filename,"/","calendar","standard");
+ncwriteatt(filename,"/","date_created","2025-01-02 15:00:00");
+ncwriteatt(filename,"/","featureType","timeseries");
+
+%% import
+% close all; clear; clc; 
+% project = 'MOSAiC_FYI_coring.nc'; ncdisp(project);
+% time = ncread(project,'time'); t_0 = (datetime('1979-01-01 00:00:00')); t = t_0 + days(time);
+% zi = ncread(project,'zi'); T_ice = ncread(project,'T_ice'); S_ice = ncread(project,'S_ice'); vb = ncread(project,'vb'); hi = ncread(project,'hi');
+% 
+% close all; clear; clc; 
+% project = 'C:\Users\evgenii.salganik\Downloads\single column modelling data\data\MOSAiC_kazr_snow_MDF_20191005_20201001.nc';
+% ncdisp(project);
