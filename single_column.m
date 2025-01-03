@@ -27,17 +27,17 @@ for i = 1:size(T_T66_ref,1) % time
 end
 clearvars cut td_0_T66 top_t_dir_T66 top_dir_T66 bot_t_dir_T66 bot_dir_T66 T_T66 i j long_T66
 
-figure
-range = [-30 -25 -20 -15 -10 -8 -6 -4 -2 0 2 4]; 
-contourf(datenum(t_T66),z_T66_ref,frz_T66_ref',range,'-','ShowText','on','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
-plot(datenum(t_T66),top_int_T66,'k--'); plot(datenum(t_T66),bot_int_T66,'k--');
-hYLabel = ylabel('Depth (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
-clim([-30 5]);
-yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
-colorbar; brighten(.1); colormap(gca,bluewhitered);
-ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
-hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
-clearvars range hYLabel ax hBar1
+% figure
+% range = [-30 -25 -20 -15 -10 -8 -6 -4 -2 0 2 4]; 
+% contourf(datenum(t_T66),z_T66_ref,frz_T66_ref',range,'-','ShowText','on','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
+% plot(datenum(t_T66),top_int_T66,'k--'); plot(datenum(t_T66),bot_int_T66,'k--');
+% hYLabel = ylabel('Depth (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+% clim([-30 5]);
+% yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
+% colorbar; brighten(.1); colormap(gca,bluewhitered);
+% ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+% hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
+% clearvars range hYLabel ax hBar1
 
 %% Stretch of T from IMB towards surface interface
 T_fy_int = frz_T66_ref'; zT_fy_int = z_T66_ref;
@@ -64,7 +64,7 @@ contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','none','
 plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
 hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
 clim([-30 5]);
-yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
 colorbar; brighten(.1); colormap(gca,bluewhitered);
 ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
 hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
@@ -96,31 +96,31 @@ S_lvl{16}(32) = []; dS_fy_lvl{16}(32) = []; td_lvl{16}(32) = [];  % remove fb
 
 S_vect = cell2mat(S_lvl); dS_fy_vect = cell2mat(dS_fy_lvl); tdS_fy_vect = cell2mat(td_lvl);
 x = tdS_fy_vect; y = dS_fy_vect; z = S_vect;
-xv = linspace(min(x), max(x), 1101);
+xv = datenum(t_T66);
 yv = z_T66_ref;
 [X,Y] = meshgrid(xv, yv);
 Z = griddata(x,y,z,X,Y);
-S_fy_int = Z(:,4:end-1); zS_fy_int = yv;
+S_fy_int = Z;
 clearvars l_imb lvl tdS_fy_vect dS_fy_vect S_vect idx x y z xv yv i S_lvl td td_fy t_fy hS td_lvl dS_fy_lvl zzS_fy
 
-figure
-range = [0 1 2 3 4 6 8 10]; % Salinity graph accuracy;
-[C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
-plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
-clabel(C,h,'FontSize',6,'Color','k');
-hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal'); colorbar; colormap summer; brighten(.7);
-clim([0 8]);
-yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
-ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
-hBar1 = colorbar; ylabel(hBar1,'Ice salinity','FontSize',8);
-clearvars X Y Z C h range hYLabel ax hBar1
+% figure
+% range = [0 1 2 3 4 6 8 10]; % Salinity graph accuracy;
+% [C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
+% plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+% clabel(C,h,'FontSize',6,'Color','k');
+% hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal'); colorbar; colormap summer; brighten(.7);
+% clim([0 8]);
+% yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
+% ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+% hBar1 = colorbar; ylabel(hBar1,'Ice salinity','FontSize',8);
+% clearvars X Y Z C h range hYLabel ax hBar1
 
 %% Salinity stretch over IMB depth
 for i = 1:length(S_fy_int)
-     zS_fy_top(i) = zS_fy_int(find(~isnan(S_fy_int(:,i)),1));
-     zS_fy_bot(i) = zS_fy_int(find(~isnan(S_fy_int(:,i)),1,'last'));
-     zT_fy_top(i) = zT_fy_int(find(~isnan(T_fy_int_sur(:,i)),1));
-     zT_fy_bot(i) = zT_fy_int(find(~isnan(T_fy_int_sur(:,i)),1,'last'));
+     zS_fy_top(i) = z_T66_ref(find(~isnan(S_fy_int(:,i)),1));
+     zS_fy_bot(i) = z_T66_ref(find(~isnan(S_fy_int(:,i)),1,'last'));
+     zT_fy_top(i) = z_T66_ref(find(~isnan(T_fy_int_sur(:,i)),1));
+     zT_fy_bot(i) = z_T66_ref(find(~isnan(T_fy_int_sur(:,i)),1,'last'));
 end
 zT_fy_str = z_T66_ref(:)*ones(1,length(T_fy_int));
 for i = 1:length(T_fy_int)
@@ -141,7 +141,7 @@ plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT
 clabel(C,h,'FontSize',6,'Color','k');
 hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
 clim([0 8]);
-yticks(-1.6:0.2:0.2); ylim([-1.6 0.1]); % depth limits
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
 colorbar; colormap summer; brighten(.7);
 ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
 hBar1 = colorbar; ylabel(hBar1,'FYI salinity','FontSize',8);
@@ -167,22 +167,94 @@ for j = 1:length(t_T66)
         end
     end
 end
-[X,Y] = meshgrid(datenum(t_T66),z_T66_ref); Z = vb_fy_int/1000; % contour plot preparation
 clearvars i j F1_fy_int F2_fy_int rhoi_fy_int
 
-figure
-range = [0 0.02 0.05 0.1 0.2 0.3];
-contourf(X,Y,Z,range,'-','ShowText','off','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
-plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
-hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
-colorbar; colormap summer; brighten(0.5); clim([0 0.3]);
-text([td_T66(490) td_T66(800) td_T66(600) td_T66(900) td_T66(980) td_T66(980)],[-0.45 -1.38 -1.20 -0.9 -0.55 -0.30],{'0.02','0.1','0.05','0.1','0.2','0.3'},'color','k','FontSize',8);
-ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
-yticks(-2.2:0.2:0.4); ylim([-1.6 0.1]); % summertime depth limits
-hBar1 = colorbar; ylabel(hBar1,'Brine volume','FontSize',8);
-clearvars X Y Z range hYLabel ax hBar1
+% figure
+% [X,Y] = meshgrid(datenum(t_T66),z_T66_ref); Z = vb_fy_int/1000; % contour plot preparation
+% range = [0 0.02 0.05 0.1 0.2 0.3];
+% contourf(X,Y,Z,range,'-','ShowText','off','LabelSpacing',400,'LineColor','none','LineWidth',0.1); hold on
+% plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+% hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+% colorbar; colormap summer; brighten(0.5); clim([0 0.3]);
+% text([td_T66(490) td_T66(800) td_T66(600) td_T66(900) td_T66(980) td_T66(980)],[-0.45 -1.38 -1.20 -0.9 -0.55 -0.30],{'0.02','0.1','0.05','0.1','0.2','0.3'},'color','k','FontSize',8);
+% ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+% yticks(-2.2:0.2:0.4); ylim([-1.6 0.2]); % summertime depth limits
+% hBar1 = colorbar; ylabel(hBar1,'Brine volume','FontSize',8);
+% clearvars X Y Z range hYLabel ax hBar1
 
-%% netCDF export - IMB cumulative meltwater
+%% Density base data
+load('Coring_old_fb.mat',"rho_fy","zrho_fy","td_rho_fy","t_fy"); % Coring data import
+for i = [1:3 5:6 8:23]
+    [~,idx(i)] = min(abs(datenum(t_fy(i))-datenum(t_T66)));
+    l_imb(i) = -zT_fy_bot(idx(i))+zT_fy_top(idx(i)); % core length from IMB for coring dates
+end
+for i = [1:3 5:6 8:23]
+    h_rho(i) = zrho_fy{i,1}(end); % density core length
+    zrho_fy{i,1} = -zrho_fy{i,1}*l_imb(i)/h_rho(i); % length of density measurements for FYI
+end
+rho_lvl = rho_fy; rho_lvl(7)=[]; rho_lvl(4)=[];
+drho_fy_lvl = zrho_fy; drho_fy_lvl(7)=[]; drho_fy_lvl(4)=[]; 
+td_lvl = td_rho_fy; td_lvl(7)=[]; td_lvl(4)=[];
+drho_fy_lvl{19}(31:32)=[]; drho_fy_lvl{20}(30:31)=[]; rho_lvl{19}(31:32)=[]; rho_lvl{20}(30:31)=[]; td_lvl{19}(31:32)=[]; td_lvl{20}(30:31)=[]; % remove false bottom
+drho_fy_lvl{21}(18:20)=[]; rho_lvl{21}(18:20)=[]; td_lvl{21}(18:20)=[]; % remove false bottom
+drho_fy_lvl{1}(7:8)=[]; rho_lvl{1}(7:8)=[]; td_lvl{1}(7:8)=[]; % remove NaN week 1
+drho_fy_lvl{2}(8:9)=[]; rho_lvl{2}(8:9)=[]; td_lvl{2}(8:9)=[]; % remove NaN week 2
+drho_fy_lvl{3}(4:5)=[]; rho_lvl{3}(4:5)=[]; td_lvl{3}(4:5)=[]; % remove NaN week 3
+drho_fy_lvl{4}(2)=[]; rho_lvl{4}(2)=[]; td_lvl{4}(2)=[]; % remove NaN week 4
+rho_vect = cell2mat(rho_lvl);
+drho_fy_vect = cell2mat(drho_fy_lvl);
+tdvg_fy_vect = cell2mat(td_lvl);
+x = tdvg_fy_vect; y = drho_fy_vect; z = rho_vect;
+xv = datenum(t_T66); yv = z_T66_ref;
+[X,Y] = meshgrid(xv, yv);
+Z = griddata(x,y,z,X,Y); rho_fy_int = Z;
+clearvars l_imb lvl tdS_fy_vect dS_fy_vect S_vect idx x y z xv yv i S_lvl td td_fy t_fy hS td_lvl dS_fy_lvl zzS_fy
+
+% figure
+% range = [700 750 800 840 860 900 910 940]; % density graph accuracy
+% [C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
+% plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+% clabel(C,h,'FontSize',6,'Color','k');
+% hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+% colorbar; colormap summer; brighten(0.5);
+% clim([800 950]);
+% yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
+% ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+% hBar1 = colorbar; ylabel(hBar1,'Ice density (kg/m^3)','FontSize',8);
+
+%% Density stretch over IMB depth
+for i = 1:length(rho_fy_int)
+     zS_fy_top(i) = z_T66_ref(find(~isnan(rho_fy_int(:,i)),1));
+     zS_fy_bot(i) = z_T66_ref(find(~isnan(rho_fy_int(:,i)),1,'last'));
+     zT_fy_top(i) = z_T66_ref(find(~isnan(T_fy_int_sur(:,i)),1));
+     zT_fy_bot(i) = z_T66_ref(find(~isnan(T_fy_int_sur(:,i)),1,'last'));
+end
+zT_fy_str = z_T66_ref(:)*ones(1,length(T_fy_int));
+for i = 1:length(T_fy_int)
+    zT_fy_str(:,i) = (zT_fy_str(:,i)-zS_fy_top(i))*(+zT_fy_bot(i)-zT_fy_top(i))/(zS_fy_bot(i)-zS_fy_top(i)) + zT_fy_top(i);
+end
+
+rho_fy_int_sur = T_fy_int; % preallocation
+for i = 1:length(T_fy_int)
+    rho_fy_int_sur(:,i) = interp1(zT_fy_str(:,i),rho_fy_int(:,i),z_T66_ref','linear'); % interpolation of salinity along IMB depth
+end
+[X,Y] = meshgrid(datenum(t_T66),z_T66_ref); Z = rho_fy_int_sur; % contour plot preparation
+clearvars zT_fy_str i
+
+figure
+range = [700 750 800 840 860 900 910 940]; % density graph accuracy
+[C,h] = contourf(X,Y,Z,range,'-','ShowText','on','LabelSpacing',400,'LineColor','w'); hold on
+plot(datenum(t_T66),zT_fy_top-zT_fy_top,'k--'); plot(datenum(t_T66),zT_fy_bot-zT_fy_top,'k--');
+clabel(C,h,'FontSize',6,'Color','k');
+hYLabel = ylabel('Ice thickness (m)'); set([hYLabel gca],'FontSize',8,'FontWeight','normal');
+clim([800 950]);
+yticks(-1.6:0.2:0.2); ylim([-1.6 0.2]); % depth limits
+colorbar; colormap summer; brighten(0.5);
+ax = gca; ax.XTick = datenum(datetime(['01-Oct-2019';'01-Dec-2019';'01-Feb-2020';'01-Apr-2020';'01-Jun-2020';'01-Aug-2020'])); datetick('x','mmm','keepticks'); xtickangle(0); % time
+hBar1 = colorbar; ylabel(hBar1,'Ice density (kg/m^3)','FontSize',8);
+clearvars X Y Z C range h hYLabel ax hBar1
+
+%% netCDF export
 filename = 'MOSAiC_FYI_coring.nc';
 time = datenum(t_T66-datetime('1979-01-01 00:00:00')); % time to nd datenum
 delete(filename)
@@ -222,6 +294,11 @@ ncwriteatt(filename,'vb','standard_name','Brine volume');
 ncwriteatt(filename,'vb','long_name','Brine volume fraction');
 ncwriteatt(filename,'vb','units','%');
 
+nccreate(filename,'rho','Dimensions',{"zi",length(z_T66_ref),"time",length(time)}); % Ice density
+ncwriteatt(filename,'rho','standard_name','Ice density');
+ncwriteatt(filename,'rho','long_name','Ice density at -15°C laboratory temperature');
+ncwriteatt(filename,'rho','units','kg/m3');
+
 nccreate(filename,'hi','Dimensions',{'time' length(time)}); % Ice thickness
 ncwriteatt(filename,'hi','standard_name','hi');
 ncwriteatt(filename,'hi','long_name','Ice thickness');
@@ -234,6 +311,7 @@ ncwrite(filename,'zi',z_T66_ref);
 ncwrite(filename,'T_ice',T_fy_int_sur);
 ncwrite(filename,'S_ice',S_fy_int_sur);
 ncwrite(filename,'vb',vb_fy_int/10);
+ncwrite(filename,'rho',rho_fy_int_sur);
 ncwrite(filename,'hi',-zT_fy_bot_sur);
 
 ncwriteatt(filename,"/","title","MOSAiC first-year ice coring");
