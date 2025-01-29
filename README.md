@@ -12,8 +12,9 @@ Pre-melt snow thickness was measured by various ice mass balance buoys: https://
 Snow thickness during melt season was measured by various mass balance buoys: https://doi.org/10.5281/zenodo.14764829
 
 Files:
-T66.mat, T62.mat - ice mass balance buoys raw data;
-Coring_old_fb.mat - ice coring raw salinity data;
 SIMBA/2019T**_icethick.tab - ice mass balance buoys processed from Preußer et al., 2025;
-single_column.m - raw data processing and export to NetCDF;
-MOSAiC_FYI_coring.nc, MOSAiC_SYI_coring.nc - processed NetCDF files.
+dataset/MOSAiC_FYI_coring.nc, MOSAiC_SYI_coring.nc - processed NetCDF files;
+Coring_old_fb.mat - ice coring raw salinity data;
+IMB_MOSAiC_premelt.nc - ice mass balance buoys processed from Salganik and Landy, 2025;
+T66.mat, T62.mat - ice mass balance buoys raw data;
+single_column.m - raw data processing and export to NetCDF.
