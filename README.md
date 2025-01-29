@@ -8,7 +8,8 @@ FYI temperature was measured by ice mass balance buoy 2019T66: https://doi.org/1
 FYI salinity and density were measured by ice coring: https://doi.org/10.1594/PANGAEA.971385;
 SYI temperature was measured by ice mass balance buoy 2019T62: https://doi.org/10.1594/PANGAEA.938134;
 SYI salinity and density were measured by ice coring: https://doi.org/10.1594/PANGAEA.959830;
-Pre-melt snow thickness was measured by various ice mass balance buoys: https://doi.pangaea.de/10.1594/PANGAEA.973193.
+Pre-melt snow thickness was measured by various ice mass balance buoys: https://doi.pangaea.de/10.1594/PANGAEA.973193;
+Snow thickness during melt season was measured by various mass balance buoys: https://doi.org/10.5281/zenodo.14764829
 
 Files:
 T66.mat, T62.mat - ice mass balance buoys raw data;
