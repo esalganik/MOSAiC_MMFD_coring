@@ -4,7 +4,7 @@ load('T66.mat',"t_T66","T_T66","lat_T66","long_T66"); % Thermistor 2019T66 data 
 cut = 1097; t_T66 = t_T66(1:cut); T_T66 = T_T66(1:cut,:); lat_T66 = lat_T66(1:cut); lon_T66 = long_T66(1:cut);
 td_0_T66 = (datenum(t_T66)- datenum(t_T66(1))); td_T66 = datenum(t_T66); % time of experiment [d]
 top_t_dir_T66 = [0 212 215 223 225 233 241 246 254 262 266 269 274]; % Direct time of measurements [d]
-% top_dir_T66 =  -[0   0   6  12   0   2   0  12  22  40  42  52  54]/100; % Thickness for interpolation [m]
+% top_dir_T66 =  -[0   0   6  12   0   2   0  12  22  40  42  52  54]/100; % Thickness for interpolation [m] (with subnivean melt pond)
 top_dir_T66 =  -[0   0   0   0   0   0   0  12  22  40  42  52  55]/100; % Thickness for interpolation [m] (removed subnivean melt pond)
 bot_t_dir_T66 = [ 0  4  5 24 45 64  99 154 195 212 244 261 272]; % Direct time of measurements [d]
 bot_dir_T66 =  -[33 40 42 54 66 82 104 140 154 154 146 138 126]/100; % Thickness for interpolation [m]
@@ -71,14 +71,17 @@ hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
 clearvars i X Y Z range hYLabel ax hBar1
 
 % Salinity base data
-load('Coring_old_fb.mat',"S_fy","zS_fy","zzS_fy","t_fy","td_fy"); % Coring data import
+load('Coring_old_fb.mat',"S_fy","zS_fy","zzS_fy","t_fy","td_fy","hd_fy"); % Coring data import
 for i = 1:length(t_fy)
     [~,idx(i)] = min(abs(datenum(t_fy(i))-datenum(t_T66)));
     l_imb(i) = -zT_fy_bot(idx(i))+zT_fy_top(idx(i)); % core length from IMB for coring dates
 end
+hs_cor = hd_fy(:,7)'/100; hs_cor(22) = 0.06; hs_cor(23) = 0.07; % snow thickness
 for i = 1:length(t_T66)
-    [closest(i),~] = min(abs(datenum(t_fy)-datenum(t_T66(i))));
+    [closest(i),idx(i)] = min(abs(datenum(t_fy)-datenum(t_T66(i)))); % days from the closest coring event
+    hs_cor_int(i) = hs_cor(idx(i)); % snow thickness from the closest coring event
 end
+clearvars hd_fy idx hs_cor
 dS_fy = zS_fy;
 for i = 1:length(S_fy)
     hS(i) = zzS_fy{i,1}(end,2); % salinity core length
@@ -275,7 +278,7 @@ end
 t_preusser = t{1}; hs_fyi_preusser = nanmean(hs_int_preusser(:,:),2);
 % Salganik et al. (2025) IMB summer dataset
 time = ncread('IMB_MOSAiC_premelt.nc','time'); t_0 = (datetime('1979-01-01 00:00:00')); t_IMB = t_0 + days(time); 
-snow_thick_imb = -ncread('IMB_MOSAiC_premelt.nc','snow_thick');
+snow_thick_imb = ncread('IMB_MOSAiC_premelt.nc','snow_thick');
 hs_imb_fyi = mean(snow_thick_imb([4 5 9],:),1); % IMB snow thickness, level FYI
 % Combined IMB snow thickness
 hs_fyi_comb = interp1([datenum(t_preusser(1:783))' datenum(t_IMB(1249:end))'],[hs_fyi_preusser(1:783)' hs_imb_fyi(1249:end)],datenum(t_T66),'linear'); % combined snow thickness, FYI
@@ -344,8 +347,13 @@ ncwriteatt(filename,'dhi_surf','units','m');
 
 nccreate(filename,'hs','Dimensions',{'time' length(time)}); % Snow thickness
 ncwriteatt(filename,'hs','standard_name','hs');
-ncwriteatt(filename,'hs','long_name','Snow thickness from various IMB buoys');
+ncwriteatt(filename,'hs','long_name','Snow thickness from coring');
 ncwriteatt(filename,'hs','units','m');
+
+nccreate(filename,'hs_imb','Dimensions',{'time' length(time)}); % Snow thickness from IMB
+ncwriteatt(filename,'hs_imb','standard_name','hs_imb');
+ncwriteatt(filename,'hs_imb','long_name','Snow thickness from various IMB buoys');
+ncwriteatt(filename,'hs_imb','units','m');
 
 ncwrite(filename,'time',time);
 ncwrite(filename,'lat',lat_T66);
@@ -358,7 +366,8 @@ ncwrite(filename,'vb',round(vb_fy_int,0)/10);
 ncwrite(filename,'rho',round(rho_fy_int_sur,1));
 ncwrite(filename,'hi',-zT_fy_bot_sur);
 ncwrite(filename,'dhi_surf',top_int_T66);
-ncwrite(filename,'hs',hs_fyi_comb);
+ncwrite(filename,'hs',hs_cor_int);
+ncwrite(filename,'hs_imb',hs_fyi_comb);
 
 ncwriteatt(filename,"/","title","MOSAiC first-year ice coring");
 ncwriteatt(filename,"/","Conventions","CF-1.7");
@@ -458,14 +467,17 @@ hBar1 = colorbar; ylabel(hBar1,'Ice temperature (°C)','FontSize',8);
 clearvars X Y Z range hYLabel ax hBar1
 
 % Salinity base data
-load('Coring_old_fb.mat',"S_sy","zS_sy","zzS_sy","t_sy","td_sy","td"); % Coring data import
+load('Coring_old_fb.mat',"S_sy","zS_sy","zzS_sy","t_sy","td_sy","td","hd_sy"); % Coring data import
 for i = 1:length(t_sy)
     [~,idx(i)] = min(abs(datenum(t_sy(i))-datenum(t_T62)));
     l_imb(i) = -zT_sy_bot(idx(i))+zT_sy_top(idx(i)); % core length from IMB for coring dates
 end
+hs_cor = hd_sy(:,7)'/100; hs_cor(11) = 0.16; % snow thickness
 for i = 1:length(t_T62)
-    [closest(i),~] = min(abs(datenum(t_sy)-datenum(t_T62(i))));
+    [closest(i),idx(i)] = min(abs(datenum(t_sy)-datenum(t_T62(i))));
+    hs_cor_int(i) = hs_cor(idx(i)); % snow thickness from the closest coring event
 end
+clearvars hd_fy idx hs_cor
 dS_sy = zS_sy;
 for i = 1:length(S_sy)
     hS(i) = zzS_sy{i,1}(end,2); % salinity core length
@@ -643,7 +655,7 @@ end
 t_preusser = t{6}; hs_fyi_preusser = nanmean(hs_int_preusser(:,[6 9]),2); hs_syi_preusser = nanmean(hs_int_preusser(:,[1:5 7 8 10]),2);
 % Salganik et al. (2025) IMB summer dataset
 time = ncread('IMB_MOSAiC_premelt.nc','time'); t_0 = (datetime('1979-01-01 00:00:00')); t_IMB = t_0 + days(time); 
-snow_thick_imb = -ncread('IMB_MOSAiC_premelt.nc','snow_thick'); imb_lbl = ncread('IMB_MOSAiC_premelt.nc','imb_lbl'); imb_ice_type = ncread('IMB_MOSAiC_premelt.nc','imb_ice_type');
+snow_thick_imb = ncread('IMB_MOSAiC_premelt.nc','snow_thick'); imb_lbl = ncread('IMB_MOSAiC_premelt.nc','imb_lbl'); imb_ice_type = ncread('IMB_MOSAiC_premelt.nc','imb_ice_type');
 hs_imb_syi = mean(snow_thick_imb([1 2 3 7 10:14 17],:),1); % IMB snow thickness, level SYI
 % Combined IMB snow thickness
 hs_syi_comb = interp1([datenum(t_preusser(1:783))' datenum(t_IMB(1249:end))'],[hs_syi_preusser(1:783)' hs_imb_syi(1249:end)],datenum(t_T62),'linear'); % combined snow thickness, SYI
@@ -712,8 +724,13 @@ ncwriteatt(filename,'dhi_surf','units','m');
 
 nccreate(filename,'hs','Dimensions',{'time' length(time)}); % Snow thickness
 ncwriteatt(filename,'hs','standard_name','hs');
-ncwriteatt(filename,'hs','long_name','Snow thickness from various IMB buoys');
+ncwriteatt(filename,'hs','long_name','Snow thickness from coring');
 ncwriteatt(filename,'hs','units','m');
+
+nccreate(filename,'hs_imb','Dimensions',{'time' length(time)}); % Snow thickness
+ncwriteatt(filename,'hs_imb','standard_name','hs_imb');
+ncwriteatt(filename,'hs_imb','long_name','Snow thickness from various IMB buoys');
+ncwriteatt(filename,'hs_imb','units','m');
 
 ncwrite(filename,'time',time);
 ncwrite(filename,'lat',lat_T62);
@@ -726,7 +743,8 @@ ncwrite(filename,'vb',round(vb_sy_int,0)/10);
 ncwrite(filename,'rho',round(rho_sy_int_sur,1));
 ncwrite(filename,'hi',-zT_sy_bot_sur);
 ncwrite(filename,'dhi_surf',top_int_T62);
-ncwrite(filename,'hs',hs_syi_comb);
+ncwrite(filename,'hs',hs_cor_int);
+ncwrite(filename,'hs_imb',hs_syi_comb);
 
 ncwriteatt(filename,"/","title","MOSAiC second-year ice coring");
 ncwriteatt(filename,"/","Conventions","CF-1.7");
@@ -750,9 +768,16 @@ ncwriteatt(filename,"/","calendar","standard");
 ncwriteatt(filename,"/","date_created","2025-01-04 23:00:00");
 ncwriteatt(filename,"/","featureType","timeseries");
 
-%% import
-close all; clear; clc; 
-project = 'MOSAiC_FYI_coring.nc'; ncdisp(project);
-time = ncread(project,'time'); t_0 = (datetime('1979-01-01 00:00:00')); t = t_0 + days(time);
-zi = ncread(project,'zi'); T_ice = ncread(project,'T_ice'); S_ice = ncread(project,'S_ice'); vb = ncread(project,'vb'); rho = ncread(project,'rho');
-hi = ncread(project,'hi'); dhi_surf = ncread(project,'dhi_surf'); hs = ncread(project,'hs'); closest = ncread(project,'closest');
+% %% import FYI
+% close all; clear; clc; 
+% project = 'MOSAiC_FYI_coring.nc'; ncdisp(project);
+% time = ncread(project,'time'); t_0 = (datetime('1979-01-01 00:00:00')); t = t_0 + days(time);
+% zi = ncread(project,'zi'); T_ice = ncread(project,'T_ice'); S_ice = ncread(project,'S_ice'); vb = ncread(project,'vb'); rho = ncread(project,'rho');
+% hi = ncread(project,'hi'); dhi_surf = ncread(project,'dhi_surf'); hs = ncread(project,'hs'); hs_imb = ncread(project,'hs_imb'); closest = ncread(project,'closest');
+% 
+% %% import SYI
+% close all; clear; clc; 
+% project = 'MOSAiC_SYI_coring.nc'; ncdisp(project);
+% time = ncread(project,'time'); t_0 = (datetime('1979-01-01 00:00:00')); t = t_0 + days(time);
+% zi = ncread(project,'zi'); T_ice = ncread(project,'T_ice'); S_ice = ncread(project,'S_ice'); vb = ncread(project,'vb'); rho = ncread(project,'rho');
+% hi = ncread(project,'hi'); dhi_surf = ncread(project,'dhi_surf'); hs = ncread(project,'hs'); hs_imb = ncread(project,'hs_imb'); closest = ncread(project,'closest');
