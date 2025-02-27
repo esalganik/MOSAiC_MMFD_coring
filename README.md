@@ -1,7 +1,7 @@
-A forcing dataset for single column model based on MOSAiC first-year ice (FYI) and second-year ice (SYI) coring data
+A forcing dataset for a single column model based on MOSAiC first-year ice (FYI) and second-year ice (SYI) coring data
 
-The dataset covers observations from 29 Oct 2019 to 29 July 2020.
-Vertical spatial resolution is 0.05 m, and temporal resolution is 6 h.
+The dataset covers observations from 29 October 2019 to 29 July 2020.
+Vertical spatial resolution is 0.5 cm, and temporal resolution is 6 h.
 The dataset provides sea-ice salinity, temperature, brine volume, density, and snow thickness data.
 
 FYI temperature was measured by ice mass balance buoy 2019T66: https://doi.org/10.1594/PANGAEA.938134;
