@@ -16,5 +16,6 @@ SIMBA/2019T**_icethick.tab - ice mass balance buoys processed from Preußer et a
 dataset/MOSAiC_FYI_coring.nc, MOSAiC_SYI_coring.nc - processed NetCDF files;
 Coring_old_fb.mat - ice coring raw salinity data;
 IMB_MOSAiC_premelt.nc - ice mass balance buoys processed from Salganik and Landy, 2025;
+Quicklook.png - illustration of the key ice physical properties;
 T66.mat, T62.mat - ice mass balance buoys raw data;
 single_column.m - raw data processing and export to NetCDF.
