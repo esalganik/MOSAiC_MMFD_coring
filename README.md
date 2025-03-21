@@ -19,3 +19,5 @@ IMB_MOSAiC_premelt.nc - ice mass balance buoys processed from Salganik and Landy
 Quicklook.png - illustration of the key ice physical properties;
 T66.mat, T62.mat - ice mass balance buoys raw data;
 single_column.m - raw data processing and export to NetCDF.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15063632.svg)](https://doi.org/10.5281/zenodo.15063632)
